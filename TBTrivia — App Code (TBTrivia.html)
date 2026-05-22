@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="theme-color" content="#0a0a14" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <title>TBTrivia</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;900&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #0a0a14; --card: #13131f; --border: rgba(255,255,255,0.1);
+      --purple: #c44fff; --pink: #ff6b9d; --green: #4ecb71; --yellow: #ffd93d;
+      --red: #ff5c5c; --teal: #4ecdc4; --text-dim: rgba(255,255,255,0.45);
+    }
+    body { font-family: 'Poppins', sans-serif; background: var(--bg); color: #fff; min-height: 100dvh; overflow-x: hidden; }
+    .screen { display: none; min-height: 100dvh; flex-direction: column; }
+    .screen.active { display: flex; }
+    #splash { align-items: center; justify-content: center; text-align: center; padding: 32px 24px; background: radial-gradient(ellipse at 50% 0%, rgba(196,79,255,0.18) 0%, transparent 70%); }
+    .brand-logo { font-size: 3.2rem; font-weight: 900; letter-spacing: -1px; background: linear-gradient(135deg, #ff6b9d 0%, #c44fff 50%, #7b6fff 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; line-height: 1; margin-bottom: 6px; }
+    .brand-tagline { font-size: 0.75rem; letter-spacing: 4px; text-transform: uppercase; color: var(--text-dim); margin-bottom: 36px; }
+    .streak-pill { display: inline-flex; align-items: center; gap: 8px; background: rgba(255,255,255,0.07); border: 1px solid var(--border); border-radius: 100px; padding: 10px 22px; font-size: 0.9rem; margin-bottom: 12px; }
+    .streak-pill .fire { font-size: 1.4rem; }
+    .splash-desc { font-size: 0.85rem; color: var(--text-dim); max-width: 280px; line-height: 1.6; margin-bottom: 40px; }
+    .era-preview { display: flex; gap: 10px; margin-bottom: 40px; }
+    .era-chip { flex: 1; background: rgba(255,255,255,0.05); border: 1px solid var(--border); border-radius: 12px; padding: 10px 6px; font-size: 0.7rem; text-align: center; line-height: 1.4; }
+    .era-chip .icon { font-size: 1.3rem; display: block; margin-bottom: 2px; }
+    .btn-main { background: linear-gradient(135deg, #ff6b9d, #c44fff); border: none; border-radius: 16px; padding: 18px 32px; font-size: 1.05rem; font-weight: 700; color: #fff; cursor: pointer; width: 100%; max-width: 320px; font-family: 'Poppins', sans-serif; transition: transform 0.1s, box-shadow 0.1s; box-shadow: 0 4px 24px rgba(196,79,255,0.35); }
+    .btn-main:active { transform: scale(0.97); }
+    .btn-ghost { background: rgba(255,255,255,0.07); border: 1px solid var(--border); border-radius: 14px; padding: 14px 32px; font-size: 0.95rem; font-weight: 600; color: #fff; cursor: pointer; width: 100%; max-width: 320px; font-family: 'Poppins', sans-serif; margin-top: 10px; }
+    #game { padding: 0; }
+    .game-header { display: flex; align-items: center; justify-content: space-between; padding: 14px 18px 10px; }
+    .header-score { font-size: 0.8rem; color: var(--text-dim); }
+    .header-score strong { color: #fff; font-size: 1rem; }
+    .progress-dots { display: flex; gap: 7px; align-items: center; }
+    .dot { width: 9px; height: 9px; border-radius: 50%; background: rgba(255,255,255,0.15); transition: background 0.3s; }
+    .dot.active { background: var(--purple); }
+    .dot.done { background: var(--green); }
+    .header-round { font-size: 0.8rem; color: var(--text-dim); }
+    .era-strip { padding: 6px 18px 8px; font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 2px; }
+    .era-strip.old { color: var(--yellow); }
+    .era-strip.social { color: var(--teal); }
+    .era-strip.modern { color: var(--pink); }
+    .video-wrap { width: 100%; aspect-ratio: 16/9; background: #000; position: relative; overflow: hidden; }
+    .video-wrap iframe { width: 100%; height: 100%; border: none; display: block; }
+    .video-loading { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; background: #000; color: var(--text-dim); font-size: 0.85rem; pointer-events: none; }
+    .question-scroll { flex: 1; overflow-y: auto; padding: 16px 18px 24px; }
+    .q-label { font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px; color: var(--text-dim); margin-bottom: 10px; }
+    .choices { display: grid; grid-template-columns: 1fr 1fr; gap: 9px; margin-bottom: 18px; }
+    .choice { background: rgba(255,255,255,0.06); border: 2px solid rgba(255,255,255,0.12); border-radius: 13px; padding: 13px 8px; color: #fff; font-size: 0.92rem; font-weight: 600; text-align: center; cursor: pointer; font-family: 'Poppins', sans-serif; transition: border-color 0.15s, background 0.15s, transform 0.1s; }
+    .choice:active { transform: scale(0.96); }
+    .choice.selected { border-color: var(--purple); background: rgba(196,79,255,0.18); }
+    .choice.reveal-correct { border-color: var(--green); background: rgba(78,203,113,0.2); }
+    .choice.reveal-wrong { border-color: var(--red); background: rgba(255,92,92,0.1); opacity: 0.55; }
+    .divider { height: 1px; background: var(--border); margin: 4px 0 18px; }
+    .score-card { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 16px; margin-bottom: 16px; display: none; }
+    .score-card.visible { display: block; }
+    .score-card-pts { font-size: 2.2rem; font-weight: 900; background: linear-gradient(90deg, var(--yellow), var(--pink)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; line-height: 1; }
+    .score-card-label { font-size: 0.72rem; color: var(--text-dim); margin-bottom: 4px; }
+    .score-card-detail { font-size: 0.78rem; color: rgba(255,255,255,0.6); margin-top: 8px; line-height: 1.5; }
+    .breakdown-row { display: flex; justify-content: space-between; margin-top: 6px; font-size: 0.78rem; }
+    .breakdown-row .lbl { color: var(--text-dim); }
+    .breakdown-row .val { font-weight: 700; }
+    .breakdown-row .val.hit { color: var(--green); }
+    .breakdown-row .val.miss { color: var(--red); }
+    .breakdown-row .val.close { color: var(--yellow); }
+    .action-btn { background: linear-gradient(135deg, #ff6b9d, #c44fff); border: none; border-radius: 14px; padding: 16px; font-size: 1rem; font-weight: 700; color: #fff; cursor: pointer; width: 100%; font-family: 'Poppins', sans-serif; transition: opacity 0.15s, transform 0.1s; box-shadow: 0 4px 20px rgba(196,79,255,0.3); }
+    .action-btn:disabled { opacity: 0.35; cursor: not-allowed; box-shadow: none; }
+    .action-btn:not(:disabled):active { transform: scale(0.97); }
+    #results { align-items: center; justify-content: flex-start; padding: 40px 24px 32px; background: radial-gradient(ellipse at 50% 0%, rgba(196,79,255,0.15) 0%, transparent 60%); }
+    .results-title { font-size: 0.75rem; letter-spacing: 3px; text-transform: uppercase; color: var(--text-dim); margin-bottom: 6px; }
+    .final-score-num { font-size: 5.5rem; font-weight: 900; background: linear-gradient(135deg, #ff6b9d, #c44fff, #7b6fff); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; line-height: 1; }
+    .final-score-max { font-size: 0.82rem; color: var(--text-dim); margin-bottom: 8px; }
+    .rating-text { font-size: 1.1rem; font-weight: 700; margin-bottom: 28px; }
+    .results-breakdown { width: 100%; max-width: 380px; margin-bottom: 28px; }
+    .rb-row { display: flex; align-items: center; justify-content: space-between; padding: 13px 0; border-bottom: 1px solid var(--border); }
+    .rb-left { text-align: left; }
+    .rb-era { font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; }
+    .rb-era.old { color: var(--yellow); } .rb-era.social { color: var(--teal); } .rb-era.modern { color: var(--pink); }
+    .rb-title { font-size: 0.8rem; color: var(--text-dim); margin-top: 2px; }
+    .rb-pts { font-size: 1.1rem; font-weight: 900; }
+    .rb-pts.high { color: var(--green); } .rb-pts.mid { color: var(--yellow); } .rb-pts.low { color: var(--red); }
+    .share-row { display: flex; flex-direction: column; align-items: center; gap: 10px; width: 100%; max-width: 320px; }
+    #already { align-items: center; justify-content: center; text-align: center; padding: 32px 24px; }
+    .next-timer { font-size: 2.5rem; font-weight: 900; color: var(--purple); margin: 12px 0 4px; }
+  </style>
+</head>
+<body>
+
+<div id="splash" class="screen active">
+  <div class="brand-logo">TBTrivia</div>
+  <div class="brand-tagline">Throwback Trivia</div>
+  <div class="streak-pill"><span class="fire">🔥</span><span id="streakNum">0</span> day streak</div>
+  <p class="splash-desc">3 viral moments. 3 eras. Can you guess the year and where they blew up?</p>
+  <div class="era-preview">
+    <div class="era-chip"><span class="icon">🕹️</span>Old School<br/><span style="color:rgba(255,255,255,0.35);font-size:0.65rem;">Pre-2012</span></div>
+    <div class="era-chip"><span class="icon">📱</span>Social Era<br/><span style="color:rgba(255,255,255,0.35);font-size:0.65rem;">2012–2017</span></div>
+    <div class="era-chip"><span class="icon">🔥</span>Modern<br/><span style="color:rgba(255,255,255,0.35);font-size:0.65rem;">2018–Now</span></div>
+  </div>
+  <button class="btn-main" onclick="startGame()">▶ Play Today's TBT</button>
+  <p style="margin-top:14px;font-size:0.72rem;color:var(--text-dim);">New questions every day</p>
+</div>
+
+<div id="game" class="screen">
+  <div class="game-header">
+    <div class="header-score">Score <strong id="hdrScore">0</strong></div>
+    <div class="progress-dots"><div class="dot" id="d0"></div><div class="dot" id="d1"></div><div class="dot" id="d2"></div></div>
+    <div class="header-round">Round <span id="hdrRound">1</span>/3</div>
+  </div>
+  <div id="eraStrip" class="era-strip"></div>
+  <div class="video-wrap">
+    <div class="video-loading" id="videoLoading">Loading clip…</div>
+    <iframe id="videoFrame" src="" allowfullscreen playsinline allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" onload="document.getElementById('videoLoading').style.display='none'"></iframe>
+  </div>
+  <div class="question-scroll">
+    <div class="q-label">📅 What year was this from?</div>
+    <div class="choices" id="yearChoices"></div>
+    <div class="divider"></div>
+    <div class="q-label">📱 Where was it originally posted?</div>
+    <div class="choices" id="platformChoices"></div>
+    <div class="score-card" id="scoreCard">
+      <div class="score-card-label">You earned</div>
+      <div class="score-card-pts" id="scPts">0 pts</div>
+      <div class="score-card-detail" id="scDetail"></div>
+      <div class="breakdown-row"><span class="lbl">Year</span><span class="val" id="scYear">—</span></div>
+      <div class="breakdown-row"><span class="lbl">Platform</span><span class="val" id="scPlatform">—</span></div>
+    </div>
+    <button class="action-btn" id="actionBtn" disabled onclick="handleAction()">Submit</button>
+  </div>
+</div>
+
+<div id="results" class="screen">
+  <div class="brand-logo" style="margin-bottom:4px;">TBTrivia</div>
+  <p class="results-title">Today's Score</p>
+  <div class="final-score-num" id="finalNum">0</div>
+  <p class="final-score-max">out of 2,100 pts</p>
+  <p class="rating-text" id="ratingText"></p>
+  <div class="results-breakdown" id="breakdown"></div>
+  <div class="share-row">
+    <button class="btn-main" onclick="shareResult()">Share Results 📤</button>
+    <button class="btn-ghost" onclick="goHome()">Back to Home</button>
+  </div>
+</div>
+
+<div id="already" class="screen">
+  <div class="brand-logo" style="margin-bottom:8px;">TBTrivia</div>
+  <p style="color:var(--text-dim);font-size:0.9rem;margin-bottom:4px;">You've already played today!</p>
+  <p style="color:var(--text-dim);font-size:0.8rem;">Next round in</p>
+  <div class="next-timer" id="nextTimer">--:--:--</div>
+  <p style="color:var(--text-dim);font-size:0.75rem;margin-bottom:32px;">Come back tomorrow for new questions</p>
+  <div class="streak-pill"><span class="fire">🔥</span><span id="alreadyStreak">0</span> day streak</div>
+  <button class="btn-ghost" onclick="goHome()" style="margin-top:32px;">Back to Home</button>
+</div>
+
+<script>
+const BANK = {
+  old: [
+    { videoId: 'txqiwrbYGrs', title: 'David After Dentist', context: '"Is this real life?" became one of the first viral YouTube moments.', year: 2009, platform: 'YouTube', yearOpts: [2007,2008,2009,2010], platOpts: ['YouTube','MySpace','Facebook','AIM'] },
+    { videoId: 'EwTZ2xpQwpA', title: 'Chocolate Rain - Tay Zonday', context: 'The deep-voiced singer who moved away from the mic to breathe.', year: 2007, platform: 'YouTube', yearOpts: [2006,2007,2008,2009], platOpts: ['YouTube','MySpace','Newgrounds','Facebook'] },
+    { videoId: 'kfVsfOSbJY0', title: 'Friday - Rebecca Black', context: '"Gotta get down on Friday" — everyone hated it, everyone knew it.', year: 2011, platform: 'YouTube', yearOpts: [2010,2011,2012,2013], platOpts: ['YouTube','Vine','Facebook','Myspace'] },
+    { videoId: 'kffacxfA7G4', title: 'Baby - Justin Bieber', context: 'The most disliked YouTube video of its era — Ludacris included.', year: 2010, platform: 'YouTube', yearOpts: [2009,2010,2011,2012], platOpts: ['YouTube','MySpace','Facebook','Vine'] },
+    { videoId: '5P6UgDEHKXw', title: 'Charlie Bit My Finger', context: 'Two British brothers. One painful bite. Millions of views.', year: 2007, platform: 'YouTube', yearOpts: [2006,2007,2008,2009], platOpts: ['YouTube','MySpace','AIM','Facebook'] },
+  ],
+  social: [
+    { videoId: '9bZkp7q19f0', title: 'Gangnam Style - PSY', context: 'The first YouTube video to hit 1 billion views. The horse dance.', year: 2012, platform: 'YouTube', yearOpts: [2011,2012,2013,2014], platOpts: ['YouTube','Vine','Facebook','Instagram'] },
+    { videoId: 'jofNR_WkoCE', title: 'What Does the Fox Say? - Ylvis', context: 'A Norwegian comedy duo asked the internet\'s most important question.', year: 2013, platform: 'YouTube', yearOpts: [2012,2013,2014,2015], platOpts: ['YouTube','Vine','Instagram','Twitter'] },
+    { videoId: 'HPsNv_nOdQc', title: "Ain't Nobody Got Time for That - Sweet Brown", context: '"Bronchitis? Ain\'t nobody got time for that!" — Sweet Brown, 2012.', year: 2012, platform: 'YouTube', yearOpts: [2011,2012,2013,2014], platOpts: ['YouTube','Vine','Twitter','Instagram'] },
+    { videoId: '8vJiSSAMNWw', title: 'Harlem Shake - original', context: 'The meme that launched a thousand office videos in 2013.', year: 2013, platform: 'YouTube', yearOpts: [2012,2013,2014,2015], platOpts: ['YouTube','Vine','Tumblr','Instagram'] },
+    { videoId: 'XQFLSyOh0k4', title: 'Running Man Challenge', context: 'The viral dance challenge that swept every high school in 2016.', year: 2016, platform: 'Instagram', yearOpts: [2015,2016,2017,2018], platOpts: ['Instagram','Vine','YouTube','Twitter'] },
+    { videoId: 'OsiRM40RFcs', title: 'Ice Bucket Challenge', context: 'Drenching yourself for ALS awareness became a global summer obsession.', year: 2014, platform: 'Facebook', yearOpts: [2013,2014,2015,2016], platOpts: ['Facebook','YouTube','Twitter','Vine'] },
+  ],
+  modern: [
+    { videoId: 'w2MtUL1FYEE', title: 'Old Town Road - Lil Nas X', context: 'Started as a TikTok meme, ended up breaking Billboard records.', year: 2019, platform: 'TikTok', yearOpts: [2018,2019,2020,2021], platOpts: ['TikTok','YouTube','Instagram','Twitter'] },
+    { videoId: 'XsX3ATc3FbA', title: 'Wellerman Sea Shanty - Nathan Evans', context: 'TikTok turned a 19th-century sea shanty into a global moment.', year: 2021, platform: 'TikTok', yearOpts: [2019,2020,2021,2022], platOpts: ['TikTok','YouTube','Instagram','Twitter'] },
+    { videoId: 'n2lTxpfwFm4', title: 'WAP - Cardi B & Megan Thee Stallion', context: 'The music video that broke the internet.', year: 2020, platform: 'YouTube', yearOpts: [2019,2020,2021,2022], platOpts: ['YouTube','TikTok','Instagram','Twitter'] },
+    { videoId: 'cdB_tFfGDtY', title: 'Corn Kid - Tariq', context: '"It\'s corn! A big lump with knobs." Tariq made corn cool forever.', year: 2022, platform: 'TikTok', yearOpts: [2021,2022,2023,2024], platOpts: ['TikTok','YouTube','Instagram','Twitter'] },
+    { videoId: 'Ct6BUPvE2sM', title: 'Baby Shark Dance', context: 'The most-viewed YouTube video of all time. You know the words.', year: 2016, platform: 'YouTube', yearOpts: [2015,2016,2017,2018], platOpts: ['YouTube','Facebook','Instagram','TikTok'] },
+  ],
+};
+
+let state = { round:0, questions:[], yearPick:null, platPick:null, submitted:false, totalScore:0, roundScores:[] };
+
+function dayIndex() { const n=new Date(),s=new Date(n.getFullYear(),0,1); return Math.floor((n-s)/86400000); }
+function pickQuestions() { const d=dayIndex(); return [BANK.old[d%BANK.old.length],BANK.social[d%BANK.social.length],BANK.modern[d%BANK.modern.length]]; }
+function yearScore(g,a) { const d=Math.abs(g-a); if(d===0)return 500; if(d===1)return 300; if(d===2)return 150; return 0; }
+function platScore(g,a) { return g===a?200:0; }
+function ratingFor(t) { const p=t/2100; if(p===1)return '🏆 Perfect score! You ARE the internet.'; if(p>=0.85)return '🔥 Pop culture legend.'; if(p>=0.65)return '👏 Solid throwback knowledge!'; if(p>=0.40)return '😅 The internet remembers more than you.'; return '💀 Were you even alive for this stuff?'; }
+function todayStr() { return new Date().toDateString(); }
+function loadStreak() { const s=parseInt(localStorage.getItem('tbt_streak')||'0'),l=localStorage.getItem('tbt_last'),y=new Date(); y.setDate(y.getDate()-1); if(l===y.toDateString())return s; if(l===todayStr())return s; return 0; }
+function saveStreak() { const l=localStorage.getItem('tbt_last'),y=new Date(); y.setDate(y.getDate()-1); let s=parseInt(localStorage.getItem('tbt_streak')||'0'); if(l===y.toDateString())s+=1; else if(l!==todayStr())s=1; localStorage.setItem('tbt_streak',s); localStorage.setItem('tbt_last',todayStr()); return s; }
+function alreadyPlayedToday() { return localStorage.getItem('tbt_played')===todayStr(); }
+function show(id) { document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active')); document.getElementById(id).classList.add('active'); }
+function updateDots() { ['d0','d1','d2'].forEach((id,i)=>{ const e=document.getElementById(id); e.className='dot'; if(i<state.round)e.classList.add('done'); else if(i===state.round)e.classList.add('active'); }); }
+function goHome() { document.getElementById('streakNum').textContent=loadStreak(); show('splash'); }
+function startGame() { if(alreadyPlayedToday()){showAlreadyPlayed();return;} state={round:0,questions:pickQuestions(),yearPick:null,platPick:null,submitted:false,totalScore:0,roundScores:[]}; loadRound(); show('game'); }
+function loadRound() {
+  const q=state.questions[state.round]; state.yearPick=null; state.platPick=null; state.submitted=false;
+  document.getElementById('hdrScore').textContent=state.totalScore; document.getElementById('hdrRound').textContent=state.round+1; updateDots();
+  const strip=document.getElementById('eraStrip'),eraData=[{cls:'old',label:'🕹️ Old School · Pre-2012'},{cls:'social',label:'📱 Social Era · 2012–2017'},{cls:'modern',label:'🔥 Modern · 2018–Now'}][state.round];
+  strip.className=`era-strip ${eraData.cls}`; strip.textContent=eraData.label;
+  document.getElementById('videoLoading').style.display='flex'; document.getElementById('videoFrame').src=`https://www.youtube.com/embed/${q.videoId}?rel=0&modestbranding=1&playsinline=1`;
+  buildChoices('yearChoices',q.yearOpts,'year'); buildChoices('platformChoices',q.platOpts,'platform');
+  document.getElementById('scoreCard').classList.remove('visible');
+  const btn=document.getElementById('actionBtn'); btn.textContent='Submit'; btn.disabled=true; btn.onclick=handleAction;
+}
+function buildChoices(cid,opts,type) { const c=document.getElementById(cid); c.innerHTML=''; opts.forEach(o=>{ const b=document.createElement('button'); b.className='choice'; b.textContent=o; b.onclick=()=>selectChoice(type,o,b,c); c.appendChild(b); }); }
+function selectChoice(type,value,btn,container) { if(state.submitted)return; container.querySelectorAll('.choice').forEach(b=>b.classList.remove('selected')); btn.classList.add('selected'); if(type==='year')state.yearPick=value; else state.platPick=value; checkReady(); }
+function checkReady() { document.getElementById('actionBtn').disabled=!(state.yearPick&&state.platPick); }
+function handleAction() { if(!state.submitted){submitRound();}else{ if(state.round<2){state.round++;loadRound();}else{finishGame();}}}
+function submitRound() {
+  state.submitted=true; const q=state.questions[state.round]; const ys=yearScore(state.yearPick,q.year),ps=platScore(state.platPick,q.platform),total=ys+ps;
+  state.totalScore+=total; state.roundScores.push({ys,ps,total,q});
+  document.getElementById('yearChoices').querySelectorAll('.choice').forEach(btn=>{ const v=parseInt(btn.textContent); if(v===q.year){btn.classList.remove('selected');btn.classList.add('reveal-correct');}else if(v===state.yearPick&&v!==q.year){btn.classList.remove('selected');btn.classList.add('reveal-wrong');}});
+  document.getElementById('platformChoices').querySelectorAll('.choice').forEach(btn=>{ const v=btn.textContent; if(v===q.platform){btn.classList.remove('selected');btn.classList.add('reveal-correct');}else if(v===state.platPick&&v!==q.platform){btn.classList.remove('selected');btn.classList.add('reveal-wrong');}});
+  document.getElementById('scPts').textContent=`+${total} pts`;
+  const yd=Math.abs(state.yearPick-q.year); let yl,yc; if(ys===500){yl=`✅ Exact! (${q.year})`;yc='hit';}else if(ys>0){yl=`🟡 Off by ${yd} yr (${q.year})`;yc='close';}else{yl=`❌ It was ${q.year}`;yc='miss';}
+  const ph=ps===200; document.getElementById('scYear').textContent=yl; document.getElementById('scYear').className=`val ${yc}`; document.getElementById('scPlatform').textContent=ph?`✅ ${q.platform}`:`❌ ${q.platform}`; document.getElementById('scPlatform').className=`val ${ph?'hit':'miss'}`;
+  document.getElementById('scDetail').textContent=`"${q.title}" — ${q.context}`; document.getElementById('scoreCard').classList.add('visible'); document.getElementById('hdrScore').textContent=state.totalScore;
+  const btn=document.getElementById('actionBtn'); btn.disabled=false; btn.textContent=state.round<2?'Next Round →':'See Results 🎉';
+}
+function finishGame() {
+  localStorage.setItem('tbt_played',todayStr()); saveStreak();
+  document.getElementById('finalNum').textContent=state.totalScore; document.getElementById('ratingText').textContent=ratingFor(state.totalScore);
+  const bd=document.getElementById('breakdown'); bd.innerHTML='';
+  const ei=[{cls:'old',label:'🕹️ Old School'},{cls:'social',label:'📱 Social Era'},{cls:'modern',label:'🔥 Modern'}];
+  state.roundScores.forEach((r,i)=>{ const pc=r.total>=600?'high':r.total>=300?'mid':'low'; const row=document.createElement('div'); row.className='rb-row'; row.innerHTML=`<div class="rb-left"><div class="rb-era ${ei[i].cls}">${ei[i].label}</div><div class="rb-title">${r.q.title}</div></div><div class="rb-pts ${pc}">${r.total} pts</div>`; bd.appendChild(row); });
+  show('results');
+}
+function showAlreadyPlayed() { document.getElementById('alreadyStreak').textContent=loadStreak(); startCountdown(); show('already'); }
+function startCountdown() { function tick(){const n=new Date(),m=new Date(n);m.setHours(24,0,0,0);const d=m-n,h=String(Math.floor(d/3600000)).padStart(2,'0'),mi=String(Math.floor((d%3600000)/60000)).padStart(2,'0'),s=String(Math.floor((d%60000)/1000)).padStart(2,'0');const e=document.getElementById('nextTimer');if(e)e.textContent=`${h}:${mi}:${s}`;} tick(); setInterval(tick,1000); }
+function shareResult() { const e=state.roundScores.map(r=>r.total>=600?'🟩':r.total>=300?'🟨':'🟥').join(''); const t=`TBTrivia ${new Date().toLocaleDateString()}\n${state.totalScore}/2100\n${e}\n\nPlay at TBTrivia.com`; if(navigator.share){navigator.share({text:t}).catch(()=>copyFallback(t));}else{copyFallback(t);} }
+function copyFallback(t) { navigator.clipboard.writeText(t).then(()=>alert('Score copied! Paste anywhere to share.')).catch(()=>alert(t)); }
+document.getElementById('streakNum').textContent=loadStreak();
+</script>
+</body>
+</html>
